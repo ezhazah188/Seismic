@@ -1,0 +1,44 @@
+// 需要在jenkins的Credentials设置中配置jenkins-dockerhub-creds、jenkins-k8s-config等参数
+
+pipeline {
+    agent any
+    environment {
+        DOCKERHUB_CREDS = credentials('jenkins-dockerhub-creds')
+        K8S_CONFIG = credentials('jenkins-k8s-config')
+        GIT_TAG = sh(returnStdout: true,script: 'git describe --tags --always').trim()
+    }
+    parameters {
+        string(name: 'DOCKERHUB', defaultValue: 'https://hub.docker.com/', description: 'docker_hub仓库地址')
+        string(name: 'DOCKER_IMAGE', defaultValue: 'centos_nginx', description: 'docker镜像名')
+        string(name: 'APP_NAME', defaultValue: 'pipeline-demo', description: 'k8s中标签名')
+        string(name: 'K8S_NAMESPACE', defaultValue: 'demo', description: 'k8s的namespace名称')
+    }
+    stages {
+        stage('Docker Build') {
+            agent any
+            steps {
+                unstash 'app'
+                sh "docker login -u ${DOCKERHUB_CREDS_USR} -p ${DOCKERHUB_CREDS_PSW}"                
+				sh "docker build -t centos_nginx:v1 ."
+				sh "docker push ${DOCKERHUB_CREDS_USR}/centos_nginx:v1"
+                sh "docker rmi centos_nginx:v1"
+            }
+            
+        }
+        stage('Deploy') {
+            agent {
+                docker {
+                    image 'centos_nginx'
+                }
+            }
+            steps {
+                sh "mkdir -p ~/.kube"
+                sh "echo ${K8S_CONFIG} > ~/.kube/config"
+                sh "sed -e 's#{IMAGE_URL}#${params.DOCKERHUB}/centos_nginx:v1;s#{APP_NAME}#${params.APP_NAME}#g;s#{SPRING_PROFILE}#k8s-test#g' k8s-deployment.tpl > k8s-deployment.yml"
+                sh "kubectl apply -f k8s-deployment.yml --namespace=${params.K8S_NAMESPACE}"
+            }
+            
+        }
+        
+    }
+}

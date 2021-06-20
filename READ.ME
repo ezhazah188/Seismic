@@ -1,0 +1,30 @@
+###READ.ME 
+#this is description of my homework
+
+answers for questions:
+ Q1:
+ A: my github url is : https://github.com/ezhazah188/Seismic/
+ 
+ Q2:
+ A: sorry for that I don't have a visa card, so I can't apply for a free account for cloud.
+ 
+ Q3: 
+ A: the web service is:http://nginx.org/, which is accessable and can download the nginx images,
+    because I can't create a demo service on cloud, I just write the dockerfile, its name is Dockerfile
+	
+ Q4:
+ A: I don't know a jenkins which can be access able from public ip or url, so I ignore this question.
+ 
+ Q5 and Q7:
+ A: I write the pipeline.txt for the CI/CD flow together.
+ 
+ Q6:
+ A: the K8S yaml file is k8s-deployment.tpl, and I rename it to k8s-deployment.yml in pipeline.txt file.
+ 
+ 
+ comments:
+       first we should create a jenkins pipeline job, and I just build a nginx docker image with Dockerfile, and push it to the Docker HUB, 
+	   and tell the k8s yaml file where the docker image located, then when I excute the "kubectl apply -f k8s-deployment.yml" command, it will
+	   deploy to the K8S pod. I set the exposed port:80.
+   
+ 
